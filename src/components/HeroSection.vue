@@ -13,16 +13,14 @@
     </div>
 
     <div class="hero-copy">
-      <p class="eyebrow">主題升級版｜你以為是自己決定的？</p>
-      <h1>你以為是自己決定的？其實大腦正在替你建構世界</h1>
-      <p class="hero-subtitle">從知覺、記憶、情緒、決策到社會影響，探索人類思維的運作機制與批判思考。</p>
+      <p class="eyebrow">沉浸式心理學互動體驗館</p>
+      <h1>你的每個決定<br>真的是你自己做出的嗎？</h1>
+      <p class="hero-subtitle" style="margin-top: 1rem; line-height: 1.8;">從早餐吃什麼，到喜歡上誰...<br>或許大腦早就替你選好了。</p>
       <div class="learning-goals">
-        <span>看見世界</span>
-        <span>記住世界</span>
-        <span>感受世界</span>
-        <span>判斷世界</span>
-        <span>受他人影響</span>
-        <span>學會理性思考</span>
+        <span>意識陷阱</span>
+        <span>選擇操控</span>
+        <span>大腦決策</span>
+        <span>自我覺察</span>
       </div>
     </div>
   </header>

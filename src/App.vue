@@ -22,6 +22,14 @@ import SocialMediaDemo from './components/SocialMediaDemo.vue'
 import ConspiracyDemo from './components/ConspiracyDemo.vue'
 import FakeNewsDemo from './components/FakeNewsDemo.vue'
 import ThinkingMapReport from './components/ThinkingMapReport.vue'
+// 🚧 預留：期末專題新互動組件
+// import StroopDemo from './components/StroopDemo.vue'
+// import DefaultEffectDemo from './components/DefaultEffectDemo.vue'
+// import DecoyDemo from './components/DecoyDemo.vue'
+// import BrainMapDemo from './components/BrainMapDemo.vue'
+// import RadarQuizDemo from './components/RadarQuizDemo.vue'
+// import ParallaxStoryDemo from './components/ParallaxStoryDemo.vue'
+// import FinalEndingDemo from './components/FinalEndingDemo.vue'
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyrWVHoH3iTzjhyMWiZiHZH9dnFzyjSf_eQRYexV5eGGVEGbWi7Q_PHBoYM-ODBk_V4HQ/exec'
 
@@ -344,22 +352,15 @@ function saveChapterScore(result) {
       />
 
       <ChapterPanel :chapter="currentChapter">
-        <IllusionDemo v-if="currentChapter.activity === 'illusion'" @answered="addSignals" />
-        <GestaltDemo v-else-if="currentChapter.activity === 'gestalt'" @answered="addSignals" />
-        <MemoryPipeline v-else-if="currentChapter.activity === 'memoryPipeline'" @finished="addSignals" />
-        <MisinformationDemo v-else-if="currentChapter.activity === 'misinformation'" @answered="addSignals" />
-        <EmotionDecision v-else-if="currentChapter.activity === 'emotion' || currentChapter.activity === 'emotionDecision'" @click="addSignals({ emotion: 1 })" />
-        <SystemQuiz v-else-if="currentChapter.activity === 'system'" @answered="addSignals" />
-        <BiasExplorer v-else-if="currentChapter.activity === 'bias'" @click="addSignals({ confirmation: 1 })" />
-        <ScenarioQuiz v-else-if="currentChapter.activity === 'scenario'" @answered="addSignals" />
-        <SocialMediaDemo v-else-if="currentChapter.activity === 'socialMedia'" @answered="addSignals" />
-        <ConspiracyDemo v-else-if="currentChapter.activity === 'conspiracy'" @answered="addSignals" />
-        <FakeNewsDemo v-else-if="currentChapter.activity === 'fakeNews'" @answered="addSignals" />
-        <DecisionToolkit v-else-if="currentChapter.activity === 'toolkit'" @click="addSignals({ rational: 1 })" />
-        <ThinkingMapReport v-else-if="currentChapter.activity === 'map'" :signals="userSignals" :scores="chapterScores" @finished="markDone()" />
-        <ShoppingSimulator v-else-if="currentChapter.activity === 'shopping'" @choice="addSignals" />
-        <MemoryChallenge v-else-if="currentChapter.activity === 'memory'" @finished="addSignals" />
-        <PsychologyLab v-else :signals="userSignals" @answered="addSignals" />
+        <!-- 期末專題：沉浸式互動展區 (組件建立前先降級使用 PsychologyLab) -->
+        <!-- <StroopDemo v-if="currentChapter.activity === 'stroop'" @answered="addSignals" /> -->
+        <!-- <DefaultEffectDemo v-else-if="currentChapter.activity === 'defaultEffect'" @answered="addSignals" /> -->
+        <!-- <DecoyDemo v-else-if="currentChapter.activity === 'decoy'" @answered="addSignals" /> -->
+        <!-- <BrainMapDemo v-else-if="currentChapter.activity === 'brainMap'" @answered="addSignals" /> -->
+        <!-- <RadarQuizDemo v-else-if="currentChapter.activity === 'radarQuiz'" @answered="addSignals" /> -->
+        <!-- <ParallaxStoryDemo v-else-if="currentChapter.activity === 'parallaxStory'" @answered="addSignals" /> -->
+        <!-- <FinalEndingDemo v-else-if="currentChapter.activity === 'finalEnding'" @finished="markDone()" /> -->
+        <PsychologyLab :signals="userSignals" @answered="addSignals" />
 
         <button
           v-if="!currentDone"
@@ -388,3 +389,40 @@ function saveChapterScore(result) {
     </main>
   </template>
 </template>
+
+<style>
+/* 🌌 期末專題全局強制覆寫：深色沉浸式科技主題 */
+:root {
+  --bg-color: #0F172A !important;        /* 深藍 */
+  --panel-bg: #1E293B !important;        /* 卡片背景 */
+  --primary-color: #38BDF8 !important;   /* 科技藍 */
+  --accent-color: #A855F7 !important;    /* 神秘紫 */
+  --text-color: #F8FAFC !important;      /* 白字 */
+  --text-muted: #94A3B8 !important;
+}
+
+body, .site-shell, .login-home {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+}
+
+.interactive-block, .chapter-panel, .theory-section, .chapter-quiz {
+  background-color: var(--panel-bg) !important;
+  color: var(--text-color) !important;
+  border: 1px solid rgba(56, 189, 248, 0.15) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+button.primary-action {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color)) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.nav-item { color: var(--text-muted) !important; }
+.nav-item.active {
+  color: var(--primary-color) !important;
+  background-color: rgba(56, 189, 248, 0.1) !important;
+  border-left: 3px solid var(--primary-color) !important;
+}
+</style>
