@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, onMounted, watch } from 'vue'
 import LoginHome from './components/LoginHome.vue'
 import HeroSection from './components/HeroSection.vue'
 import ChapterNavigation from './components/ChapterNavigation.vue'
@@ -14,6 +14,7 @@ import DecisionToolkit from './components/DecisionToolkit.vue'
 import PsychologyLab from './components/PsychologyLab.vue'
 import TheoryExplainer from './components/TheoryExplainer.vue'
 import ChapterQuiz from './components/ChapterQuiz.vue'
+import FullPageQuiz from './components/FullPageQuiz.vue'
 import IllusionDemo from './components/IllusionDemo.vue'
 import GestaltDemo from './components/GestaltDemo.vue'
 import MemoryPipeline from './components/MemoryPipeline.vue'
@@ -312,9 +313,153 @@ const currentChapter = computed(() => chapters[activeChapter.value])
 const currentDone = computed(() => Boolean(interactionDone[activeChapter.value]))
 const totalScore = computed(() => Object.values(chapterScores).reduce((sum, item) => sum + item.score, 0))
 
+// quiz page state
+const quizPageOpen = ref(false)
+const quizChapterIndex = ref(null)
+
+function openFullQuiz(index) {
+  quizChapterIndex.value = index
+  quizPageOpen.value = true
+}
+
+function closeFullQuiz() {
+  quizPageOpen.value = false
+  quizChapterIndex.value = null
+}
+
+const completedCount = computed(() => Object.keys(interactionDone).length)
+const completionPercent = computed(() => Math.round((completedCount.value / chapters.length) * 100))
+
 function startLearning(profile) {
   learner.value = profile
 }
+
+async function deleteRemoteUser(username) {
+  if (!username) return
+  const body = new URLSearchParams({
+    action: 'deleteAccount',
+    username,
+  })
+
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      },
+      body,
+    })
+  } catch (err) {
+    console.warn('刪除遠端帳號資料失敗', err)
+  }
+}
+
+function logout() {
+  learner.value = null
+  // clear saved state
+  localStorage.removeItem('learner')
+  localStorage.removeItem('interactionDone')
+  localStorage.removeItem('chapterScores')
+  localStorage.removeItem('userSignals')
+  localStorage.removeItem('psychLabState')
+  // reset in-memory state
+  Object.keys(interactionDone).forEach((k) => delete interactionDone[k])
+  Object.keys(chapterScores).forEach((k) => delete chapterScores[k])
+  Object.keys(userSignals).forEach((k) => { if (k in userSignals) userSignals[k] = 0 })
+}
+
+async function deleteAccount() {
+  const confirmed = window.confirm('確定要刪除帳號？此操作無法復原，所有學習紀錄都將被刪除。')
+  if (!confirmed) return
+
+  if (learner.value && learner.value.username) {
+    await deleteRemoteUser(learner.value.username)
+  }
+
+  logout()
+  accountOpen.value = false
+  alert('帳號及所有紀錄已刪除。')
+}
+
+// account menu + profile modal state
+const accountOpen = ref(false)
+const profileOpen = ref(false)
+
+function toggleAccountMenu() {
+  accountOpen.value = !accountOpen.value
+}
+
+function openProfile() {
+  accountOpen.value = false
+  profileOpen.value = true
+}
+
+function closeProfile() {
+  profileOpen.value = false
+}
+
+function exportProgress() {
+  const payload = {
+    learner: learner.value,
+    interactionDone: interactionDone,
+    chapterScores: chapterScores,
+    userSignals: userSignals,
+    exportedAt: new Date().toISOString(),
+  }
+  const data = JSON.stringify(payload, null, 2)
+  const blob = new Blob([data], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  const filename = `progress_${(learner.value && (learner.value.username || learner.value.name)) || 'user'}.json`
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+  accountOpen.value = false
+}
+
+
+// persist relevant state to localStorage whenever they change
+watch(learner, (nv) => {
+  if (nv) localStorage.setItem('learner', JSON.stringify(nv))
+}, { deep: true })
+
+watch(() => interactionDone, (nv) => {
+  try { localStorage.setItem('interactionDone', JSON.stringify(nv)) } catch(e){}
+}, { deep: true })
+
+watch(() => chapterScores, (nv) => {
+  try { localStorage.setItem('chapterScores', JSON.stringify(nv)) } catch(e){}
+}, { deep: true })
+
+watch(() => userSignals, (nv) => {
+  try { localStorage.setItem('userSignals', JSON.stringify(nv)) } catch(e){}
+}, { deep: true })
+
+onMounted(() => {
+  // restore learner and progress from localStorage
+  try {
+    const sLearner = localStorage.getItem('learner')
+    if (sLearner) learner.value = JSON.parse(sLearner)
+
+    const sDone = localStorage.getItem('interactionDone')
+    if (sDone) Object.assign(interactionDone, JSON.parse(sDone))
+
+    const sScores = localStorage.getItem('chapterScores')
+    if (sScores) Object.assign(chapterScores, JSON.parse(sScores))
+
+    const sSignals = localStorage.getItem('userSignals')
+    if (sSignals) {
+      const parsed = JSON.parse(sSignals)
+      Object.entries(parsed).forEach(([k,v]) => { if (k in userSignals) userSignals[k] = v })
+    }
+  } catch (e) {
+    console.error('restore state failed', e)
+  }
+})
 
 function markDone(index = activeChapter.value) {
   interactionDone[index] = true
@@ -342,9 +487,34 @@ function saveChapterScore(result) {
   />
 
   <template v-else>
+    <div class="topbar">
+        <div class="topbar-inner">
+          <div class="topbar-left">歡迎，{{ (learner && (learner.name || learner.username)) || '學習者' }}</div>
+          <div class="topbar-right">
+            <div class="account" @click.stop>
+              <button class="account-btn" type="button" @click="toggleAccountMenu">
+                {{ (learner && (learner.name || learner.username)) || '學習者' }}
+                <span class="caret">▾</span>
+              </button>
+              <div v-if="accountOpen" class="account-menu">
+                <button class="account-item" type="button" @click="openProfile">檢視帳號</button>
+                <button class="account-item" type="button" @click="exportProgress">匯出進度</button>
+                <button class="account-item" type="button" @click="logout">登出</button>
+                <button class="account-item account-item-danger" type="button" @click="deleteAccount">刪除帳號</button>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+
     <HeroSection />
 
-    <main class="site-shell">
+    <div class="top-progress">
+      <div class="progress-track"><div class="progress-fill" :style="{ width: completionPercent + '%' }"></div></div>
+      <div class="progress-label">已完成 {{ completionPercent }}%</div>
+    </div>
+
+    <main v-if="!quizPageOpen" class="site-shell">
       <ChapterNavigation
         :chapters="chapters"
         :active-index="activeChapter"
@@ -376,35 +546,63 @@ function saveChapterScore(result) {
           :chapter="currentChapter"
         />
 
-        <ChapterQuiz
-          v-if="currentDone"
-          :apps-script-url="APPS_SCRIPT_URL"
-          :chapter="currentChapter"
-          :chapter-index="activeChapter"
-          :learner="learner"
-          :total-score="totalScore"
-          @scored="saveChapterScore"
-        />
+        <div v-if="currentDone" style="margin-top:12px; display:flex; gap:8px; align-items:center;">
+          <button class="primary-action" type="button" @click="openFullQuiz(activeChapter)">前往測驗（新頁面）</button>
+          <small style="color:var(--text-muted)">或在此頁直接練習（保留右側按鈕）</small>
+        </div>
       </ChapterPanel>
     </main>
+    
+    <FullPageQuiz
+      v-if="quizPageOpen"
+      :chapter="chapters[quizChapterIndex]"
+      :chapter-index="quizChapterIndex"
+      :learner="learner"
+      :apps-script-url="APPS_SCRIPT_URL"
+      :total-score="totalScore"
+      @close="closeFullQuiz"
+      @scored="saveChapterScore"
+    />
+  
+        <!-- profile modal -->
+        <div v-if="profileOpen" class="account-modal" @click.self="closeProfile">
+          <div class="account-modal-body">
+            <h3>帳號資訊</h3>
+            <p>姓名：{{ (learner && learner.name) || '—' }}</p>
+            <p>使用者名稱：{{ (learner && learner.username) || '—' }}</p>
+            <p>開始時間：{{ (learner && learner.startedAt) || '—' }}</p>
+            <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
+              <button class="text-action" type="button" @click="closeProfile">關閉</button>
+            </div>
+          </div>
+        </div>
   </template>
 </template>
 
 <style>
 /* 🌌 期末專題全局強制覆寫：深色沉浸式科技主題 */
 :root {
-  --bg-color: #0F172A !important;        /* 深藍 */
-  --panel-bg: #1E293B !important;        /* 卡片背景 */
+  --bg-color: rgba(15, 23, 42, 0.85) !important;        /* 深藍 (帶 85% 透明度，讓底圖透出) */
+  --panel-bg: rgba(30, 41, 59, 0.85) !important;        /* 卡片背景 (帶 85% 透明度) */
   --primary-color: #38BDF8 !important;   /* 科技藍 */
   --accent-color: #A855F7 !important;    /* 神秘紫 */
   --text-color: #F8FAFC !important;      /* 白字 */
   --text-muted: #94A3B8 !important;
 }
 
+body {
+  background: linear-gradient(var(--bg-color), var(--bg-color)), url('./components/background.png') no-repeat center center fixed !important;
+  background-size: cover !important;
+}
+
 body, .site-shell, .login-home {
-  background-color: var(--bg-color) !important;
+  background-color: transparent !important;
   color: var(--text-color) !important;
 }
+
+html, body, #app { height: 100%; margin: 0 }
+
+.site-shell { width: min(1160px, calc(100% - 40px)); margin: 0 auto 32px; padding-top: 12px; padding-bottom: 12px }
 
 .interactive-block, .chapter-panel, .theory-section, .chapter-quiz {
   background-color: var(--panel-bg) !important;
@@ -425,4 +623,51 @@ button.primary-action {
   background-color: rgba(56, 189, 248, 0.1) !important;
   border-left: 3px solid var(--primary-color) !important;
 }
+
+/* topbar + logout */
+.topbar { position: sticky; top: 12px; z-index: 80; width: calc(100% - 40px); margin: 12px auto; }
+.topbar-inner { display:flex; justify-content:space-between; align-items:center; gap:12px }
+.topbar-left { color: var(--text-muted); font-weight:700 }
+.logout-btn { border: 1px solid rgba(255,255,255,0.08); background: transparent; color: var(--text-color); padding: 8px 12px; border-radius:8px; cursor:pointer }
+.logout-btn:hover { background: rgba(255,255,255,0.04) }
+
+/* account dropdown */
+.account { position: relative }
+.account-btn { border: 1px solid rgba(255,255,255,0.06); background: transparent; color: var(--text-color); padding: 8px 12px; border-radius:8px; font-weight:800; cursor:pointer }
+.account-btn .caret { margin-left:8px; opacity:0.85 }
+.account-menu { position: absolute; right: 0; top: calc(100% + 8px); background: var(--panel-bg); border: 1px solid rgba(255,255,255,0.06); padding: 8px; border-radius:8px; box-shadow: 0 8px 28px rgba(0,0,0,0.45); min-width:160px; z-index:90 }
+.account-item { display:block; width:100%; text-align:left; padding:8px 10px; border:0; background:transparent; color:var(--text-color); font-weight:700; border-radius:6px; cursor:pointer }
+.account-item:hover { background: rgba(255,255,255,0.03) }
+.account-item-danger { color: #ef5350; font-weight: 900 }
+.account-item-danger:hover { background: rgba(239,83,80,0.1) }
+
+/* profile modal */
+.account-modal { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(2,6,23,0.6); z-index: 100 }
+.account-modal-body { width:100%; max-width:420px; background: var(--panel-bg); color: var(--text-color); padding:18px; border-radius:10px; box-shadow: 0 16px 48px rgba(0,0,0,0.6) }
+.account-modal-body h3 { margin:0 0 8px; color: var(--primary-color) }
+
+/* enhance content contrast */
+.chapter-panel p,
+.chapter-panel .eyebrow,
+.theory-section p,
+.interactive-block p,
+.chapter-quiz p,
+.hero-subtitle {
+  color: rgba(248,250,252,0.9) !important;
+}
+
+/* 修正右側「深入解釋欄」：改回白字，並將背景調整為深藍色 */
+.selection-helper {
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(56, 189, 248, 0.2) !important;
+}
+.selection-helper p {
+  color: rgba(248, 250, 252, 0.9) !important; 
+}
+
+/* top progress */
+.top-progress { width: min(1160px, calc(100% - 40px)); margin: 12px auto; display:flex; align-items:center; gap:12px }
+.progress-track { flex: 1; height: 10px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow:hidden }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary-color), var(--accent-color)); width:0 }
+.progress-label { color: var(--text-muted); font-weight:800 }
 </style>

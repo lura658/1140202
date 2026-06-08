@@ -1,5 +1,5 @@
 :root {
-  --bg: #f7f8f3;
+  --bg: #0F172A;
   --ink: #17211b;
   --muted: #60706a;
   --panel: #ffffff;
@@ -18,6 +18,13 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* remove default page white margins and force dark background to avoid white edges */
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  background: #0F172A; /* fallback dark background */
+}
+
 * {
   box-sizing: border-box;
 }
@@ -26,9 +33,13 @@ body {
   margin: 0;
   min-width: 320px;
   background:
-    linear-gradient(135deg, rgba(47, 125, 98, 0.13), transparent 36%),
-    linear-gradient(315deg, rgba(196, 138, 27, 0.14), transparent 38%),
+    url(./components/background.png),
+    linear-gradient(135deg, rgba(47, 125, 98, 0.08), transparent 36%),
+    linear-gradient(315deg, rgba(196, 138, 27, 0.08), transparent 38%),
     var(--bg);
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
 }
 
 button,
@@ -75,9 +86,10 @@ button:disabled {
 
 .login-panel h1 {
   margin: 10px 0 14px;
-  font-size: clamp(2.2rem, 6vw, 4.6rem);
+  font-size: clamp(2.8rem, 7vw, 5.2rem);
   line-height: 1.06;
   letter-spacing: 0;
+  color: #003d82;
 }
 
 .login-panel p:not(.eyebrow) {
@@ -147,8 +159,8 @@ button:disabled {
 
 .eyebrow {
   margin: 0;
-  color: var(--teal);
-  font-size: 0.92rem;
+  color: #003d82;
+  font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -229,6 +241,58 @@ button:disabled {
 .node-c { left: 24%; bottom: 20%; background: var(--rose); }
 .node-d { right: 21%; bottom: 18%; background: var(--teal); }
 
+/* node pulse animation for visual liveliness */
+.node { animation: pulse 3s ease-in-out infinite; }
+.node-a { animation-delay: 0s }
+.node-b { animation-delay: 0.3s }
+.node-c { animation-delay: 0.6s }
+.node-d { animation-delay: 0.9s }
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0,0,0,0.06); }
+  50% { transform: scale(1.12); box-shadow: 0 0 40px 8px rgba(0,0,0,0.04); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0,0,0,0.06); }
+}
+
+/* hero copy entrance animation */
+.hero-copy { animation: slideIn 700ms ease both; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* learning goal chips */
+.goal-chip {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: #e6f4f1;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 800;
+  transition: transform .14s ease, background .14s ease;
+}
+.goal-chip:hover { transform: translateY(-4px); background: rgba(255,255,255,0.12); cursor: pointer }
+.goal-chip[aria-pressed="true"] { background: var(--teal); color: #fff; }
+
+.goal-info {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.04);
+  color: #dff6f2;
+}
+
+/* chapter action challenge */
+.action-challenge { margin-top: 18px; border-top: 1px dashed rgba(255,255,255,0.04); padding-top: 12px }
+.challenge-body p { color: rgba(248,250,252,0.9); line-height:1.8 }
+
+/* make hero title image area more decorative */
+.brain-visual {
+  background: radial-gradient(circle at 20% 20%, rgba(47,125,98,0.08), transparent 20%), linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04));
+  transition: transform .4s ease;
+}
+.hero-wrap:hover .brain-visual { transform: translateY(-4px) rotate(-1deg); }
+
 .site-shell {
   display: grid;
   grid-template-columns: 310px minmax(0, 1fr);
@@ -300,10 +364,22 @@ button:disabled {
 .key-points {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   margin: 22px 0 28px;
   padding: 0;
   list-style: none;
+}
+
+.key-points li {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(25, 109, 119, 0.1);
+  color: var(--teal);
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: none;
+  cursor: default;
 }
 
 .interactive-block,
@@ -328,6 +404,91 @@ button:disabled {
   font-size: 1.2rem;
   line-height: 1.45;
   letter-spacing: 0;
+}
+
+
+/* 提高卡片字色對比，避免與背景混淆 */
+.bias-card h3 {
+  color: var(--teal);
+  margin: 8px 0 8px;
+}
+.bias-card span {
+  color: var(--green);
+}
+.bias-card p,
+.bias-card small {
+  color: var(--muted);
+}
+
+/* 快問快答模態樣式 */
+.quiz-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(11, 14, 12, 0.45);
+  z-index: 60;
+  padding: 20px;
+}
+.quiz-modal {
+  width: 100%;
+  max-width: 720px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+}
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.quiz-question {
+  margin: 12px 0 10px;
+}
+.quiz-actions { margin-top: 12px; display:flex; gap:8px }
+.quiz-summary ul { margin: 8px 0 0; padding-left: 18px }
+
+/* 增強選項按鈕可讀性（較大的字、加深文字、輕微底色） */
+.choice-grid button {
+  padding: 14px 16px;
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--ink);
+  background: #fff;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.choice-grid button:not(.selected) {
+  background: rgba(250,250,250,0.98);
+}
+.choice-grid button.selected,
+.choice-grid button:hover {
+  background: var(--teal);
+  color: #fff;
+  border-color: rgba(25,109,119,0.6);
+}
+
+.choice-grid button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* 提高題目與標題對比 */
+.quiz-header h3,
+.quiz-question,
+.chapter-quiz h3,
+.interactive-block h3 {
+  color: var(--teal);
+  font-weight: 900;
+}
+
+/* 更一致且高對比的文字選取樣式 */
+::selection {
+  background: var(--teal);
+  color: #fff;
 }
 
 .mini-toolbar,
@@ -524,14 +685,9 @@ button:disabled {
   line-height: 1.35;
 }
 
-.theory-copy p:not(.eyebrow),
-.selection-helper p {
+.theory-copy p:not(.eyebrow) {
   color: var(--muted);
   line-height: 1.9;
-}
-
-.theory-copy p::selection {
-  background: rgba(196, 138, 27, 0.28);
 }
 
 .selection-helper {
@@ -539,6 +695,13 @@ button:disabled {
   border-radius: 8px;
   background: #fff;
   padding: 18px;
+  color: #102a43;
+}
+
+.selection-helper p {
+  color: #102a43 !important;
+  line-height: 1.9;
+  font-weight: 600;
 }
 
 .chapter-quiz {

@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import BiasCard from './BiasCard.vue'
+import QuickQuiz from './QuickQuiz.vue'
 
 const search = ref('')
 const activeCategory = ref('全部')
@@ -27,6 +28,15 @@ const filteredBiases = computed(() => {
     return matchesCategory && matchesSearch
   })
 })
+const showQuiz = ref(false)
+
+function openQuiz() {
+  showQuiz.value = true
+}
+
+function closeQuiz() {
+  showQuiz.value = false
+}
 </script>
 
 <template>
@@ -45,6 +55,7 @@ const filteredBiases = computed(() => {
       >
         {{ category }}
       </button>
+      <button class="primary-action" type="button" @click="openQuiz">開始快問快答</button>
     </div>
 
     <div class="bias-grid">
@@ -54,5 +65,7 @@ const filteredBiases = computed(() => {
         :bias="bias"
       />
     </div>
+
+    <QuickQuiz v-if="showQuiz" :biases="biases" @close="closeQuiz" />
   </div>
 </template>

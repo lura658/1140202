@@ -11,6 +11,36 @@ const props = defineProps({
 
 const emit = defineEmits(['answered'])
 const selected = ref({})
+const locked = ref({})  // track which tests are locked after selection
+const lastChapter = ref(null)  // detect chapter changes
+
+// load state from localStorage when component mounts
+function loadStateFromStorage() {
+  try {
+    const saved = localStorage.getItem('psychLabState')
+    if (saved) {
+      const state = JSON.parse(saved)
+      selected.value = state.selected || {}
+      locked.value = state.locked || {}
+      lastChapter.value = state.lastChapter || null
+    }
+  } catch (e) {
+    console.error('failed to load psych lab state', e)
+  }
+}
+
+// save state to localStorage
+function saveStateToStorage() {
+  try {
+    const state = { selected: selected.value, locked: locked.value, lastChapter: lastChapter.value }
+    localStorage.setItem('psychLabState', JSON.stringify(state))
+  } catch (e) {
+    console.error('failed to save psych lab state', e)
+  }
+}
+
+// load on mount
+loadStateFromStorage()
 
 const tests = [
   {
@@ -55,8 +85,31 @@ const profileText = computed(() => {
 })
 
 function choose(test, option) {
+  // only allow selection if not locked
+  if (locked.value[test.id]) return
+  
   selected.value[test.id] = option.label
+  locked.value[test.id] = true
+  lastChapter.value = Date.now()
+  saveStateToStorage()
   emit('answered', option.score)
+}
+
+function resetChoice(testId) {
+  // clear score by emitting negative of previous scores
+  const test = tests.find(t => t.id === testId)
+  const prevOption = test.options.find(o => o.label === selected.value[testId])
+  if (prevOption) {
+    const negScore = {}
+    Object.entries(prevOption.score).forEach(([key, val]) => {
+      negScore[key] = -val
+    })
+    emit('answered', negScore)
+  }
+  
+  selected.value[testId] = null
+  locked.value[testId] = false
+  saveStateToStorage()
 }
 </script>
 
@@ -69,12 +122,17 @@ function choose(test, option) {
           <button
             v-for="option in test.options"
             :key="option.label"
-            :class="{ selected: selected[test.id] === option.label }"
+            :class="{ selected: selected[test.id] === option.label, disabled: locked[test.id] && selected[test.id] !== option.label }"
             type="button"
+            :disabled="locked[test.id] && selected[test.id] !== option.label"
             @click="choose(test, option)"
           >
             {{ option.label }}
           </button>
+        </div>
+        <div v-if="locked[test.id]" style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+          <small style="color:rgba(248,250,252,0.7)">已選擇</small>
+          <button class="text-action" type="button" @click="resetChoice(test.id)">重新選擇</button>
         </div>
       </article>
     </section>

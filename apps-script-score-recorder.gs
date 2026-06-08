@@ -21,6 +21,10 @@ function doPost(e) {
     return outputJson(saveScore(params));
   }
 
+  if (params.action === 'deleteAccount') {
+    return outputJson(deleteAccount(params));
+  }
+
   return outputJson({ ok: false, message: 'Unknown action.' });
 }
 
@@ -150,6 +154,34 @@ function findExistingScoreRow(sheet, username, chapterIndex) {
 
 function normalizeUsername(value) {
   return String(value || '').trim().toLowerCase();
+}
+
+function deleteAccount(data) {
+  const username = normalizeUsername(data.username || '');
+  if (!username) {
+    return { ok: false, message: 'Missing username.' };
+  }
+
+  const learners = getLearnersSheet();
+  deleteRowsByUsername(learners, 2, 2, username);
+
+  const scores = getScoresSheet();
+  deleteRowsByUsername(scores, 2, 3, username);
+
+  return { ok: true, message: 'Account and connected records deleted.' };
+}
+
+function deleteRowsByUsername(sheet, startRow, usernameColumn, username) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < startRow) return;
+
+  const rows = sheet.getRange(startRow, usernameColumn, lastRow - startRow + 1, 1).getValues();
+
+  for (let i = rows.length - 1; i >= 0; i -= 1) {
+    if (normalizeUsername(rows[i][0]) === username) {
+      sheet.deleteRow(startRow + i);
+    }
+  }
 }
 
 function outputJson(data, callback) {
