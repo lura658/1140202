@@ -591,8 +591,7 @@ function saveChapterScore(result) {
 }
 
 body {
-  background: linear-gradient(var(--bg-color), var(--bg-color)), url('./components/background.png') no-repeat center center fixed !important;
-  background-size: cover !important;
+  background-color: var(--bg-color) !important;
 }
 
 body, .site-shell, .login-home {

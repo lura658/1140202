@@ -43,7 +43,13 @@ function goBack() {
 </template>
 
 <style>
-.fullpage-quiz { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; background: var(--bg-color); padding: 28px; }
+.fullpage-quiz {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--bg-color);
+  padding: 28px;
+}
 .quiz-topbar { display:flex; gap:12px; align-items:center; color:var(--text-color); }
 .quiz-main { margin-top: 12px; }
 </style>
