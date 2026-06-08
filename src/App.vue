@@ -23,6 +23,11 @@ import SocialMediaDemo from './components/SocialMediaDemo.vue'
 import ConspiracyDemo from './components/ConspiracyDemo.vue'
 import FakeNewsDemo from './components/FakeNewsDemo.vue'
 import ThinkingMapReport from './components/ThinkingMapReport.vue'
+import balanceAvatar from './均衡.png'
+import intuitiveAvatar from './直覺.png'
+import socialAvatar from './社交敏感.png'
+import emotionAvatar from './情緒化.png'
+import rationalAvatar from './理性分析.png'
 // 🚧 預留：期末專題新互動組件
 // import StroopDemo from './components/StroopDemo.vue'
 // import DefaultEffectDemo from './components/DefaultEffectDemo.vue'
@@ -276,7 +281,7 @@ const chapters = [
   {
     title: '培養批判思考',
     kicker: '第十四章｜理性決策檢查表',
-    activity: 'toolkit',
+    activity: 'decisionChecklist',
     intro: '用清晰的決策檢查表來檢驗資訊，將貝氏更新與知識謙遜融入日常思維。',
     points: ['知識的謙遜', '貝氏更新', '理性決策檢查'],
     theory: [
@@ -309,9 +314,79 @@ const chapters = [
   },
 ]
 
-const currentChapter = computed(() => chapters[activeChapter.value])
+const currentChapter = computed(() => chapters[activeChapter.value] || {})
 const currentDone = computed(() => Boolean(interactionDone[activeChapter.value]))
 const totalScore = computed(() => Object.values(chapterScores).reduce((sum, item) => sum + item.score, 0))
+
+const signalLabels = {
+  perception: '感知敏銳',
+  memory: '記憶敏感',
+  emotion: '情緒波動',
+  intuitive: '直覺反應',
+  rational: '理性分析',
+  social: '社群敏感',
+  confirmation: '確認偏誤',
+  scarcity: '稀缺敏感',
+  sunkCost: '沉沒成本',
+  misinformation: '偽訊判斷',
+}
+
+const sortedSignals = computed(() => Object.entries(userSignals).sort((a, b) => b[1] - a[1]))
+const topSignals = computed(() => sortedSignals.value.filter(([, value]) => value > 0).slice(0, 3))
+const personalityType = computed(() => {
+  const rational = userSignals.rational
+  const intuitive = userSignals.intuitive
+  if (rational >= intuitive + 2) return '理性分析型'
+  if (intuitive >= rational + 2) return '直覺感性型'
+  if (userSignals.social >= 3) return '社交敏感型'
+  if (userSignals.emotion >= 3) return '情緒導向型'
+  return '均衡觀察型'
+})
+
+const personalityProfile = computed(() => {
+  const base = {
+    '理性分析型': {
+      src: rationalAvatar,
+      description: '你的思考風格偏好邏輯與結構性分析，善於比較選項並尋找最合理的答案。',
+    },
+    '直覺感性型': {
+      src: intuitiveAvatar,
+      description: '你常依靠第一直覺與感受做決策，擅長快速抓住情境中的整體意象。',
+    },
+    '社交敏感型': {
+      src: socialAvatar,
+      description: '你對他人想法與群體氛圍非常敏銳，容易從社交線索中獲得判斷依據。',
+    },
+    '情緒導向型': {
+      src: emotionAvatar,
+      description: '你的判斷深受情緒影響，情緒常成為你做決定時的核心線索。',
+    },
+    '均衡觀察型': {
+      src: balanceAvatar,
+      description: '你在直覺與理性之間保持平衡，能夠從多個角度看待問題。',
+    },
+  }
+  return base[personalityType.value] || base['均衡觀察型']
+})
+
+const personalOverview = computed(() => {
+  if (!topSignals.value.length) {
+    return '完成心智互動測驗後，這裡會生成你的個人心理分析總攬，幫助你了解自己的偏好與思考模式。'
+  }
+  const primary = signalLabels[topSignals.value[0][0]] || topSignals.value[0][0]
+  const secondary = topSignals.value[1] ? signalLabels[topSignals.value[1][0]] : null
+  const third = topSignals.value[2] ? signalLabels[topSignals.value[2][0]] : null
+  const extras = [secondary, third].filter(Boolean).join('、')
+  return `你目前的心理特質以「${primary}」最為明顯，${extras ? `其次還呈現 ${extras} 的傾向，` : ''}建議繼續發揮你的優勢，同時留意這些特質可能帶來的認知偏差。`
+})
+
+const personalityTraits = computed(() => topSignals.value.map(([key, value]) => ({ label: signalLabels[key] || key, value })))
+const chapterScoreList = computed(() => chapters.map((chapter, index) => ({
+  title: chapter.kicker,
+  label: chapter.title,
+  score: chapterScores[index]?.score ?? null,
+  status: chapterScores[index] ? `${chapterScores[index].score} 分` : '尚未測驗',
+})))
 
 // quiz page state
 const quizPageOpen = ref(false)
@@ -515,13 +590,18 @@ function saveChapterScore(result) {
     </div>
 
     <main v-if="!quizPageOpen" class="site-shell">
-      <ChapterNavigation
-        :chapters="chapters"
-        :active-index="activeChapter"
-        @select="activeChapter = $event"
-      />
+      <div class="chapter-sidebar">
+        <ChapterNavigation
+          :chapters="chapters"
+          :active-index="activeChapter"
+          :show-summary="true"
+          @select="activeChapter = $event"
+        />
+      </div>
 
-      <ChapterPanel :chapter="currentChapter">
+      <!-- 右側主內容區 -->
+      <div class="chapter-main-content" style="min-width: 0; width: 100%;">
+        <ChapterPanel v-if="activeChapter !== -1" :chapter="currentChapter">
         <!-- 期末專題：沉浸式互動展區 (組件建立前先降級使用 PsychologyLab) -->
         <!-- <StroopDemo v-if="currentChapter.activity === 'stroop'" @answered="addSignals" /> -->
         <!-- <DefaultEffectDemo v-else-if="currentChapter.activity === 'defaultEffect'" @answered="addSignals" /> -->
@@ -530,7 +610,7 @@ function saveChapterScore(result) {
         <!-- <RadarQuizDemo v-else-if="currentChapter.activity === 'radarQuiz'" @answered="addSignals" /> -->
         <!-- <ParallaxStoryDemo v-else-if="currentChapter.activity === 'parallaxStory'" @answered="addSignals" /> -->
         <!-- <FinalEndingDemo v-else-if="currentChapter.activity === 'finalEnding'" @finished="markDone()" /> -->
-        <PsychologyLab :signals="userSignals" @answered="addSignals" />
+        <PsychologyLab :chapter="currentChapter" :signals="userSignals" @answered="addSignals" />
 
         <button
           v-if="!currentDone"
@@ -550,7 +630,37 @@ function saveChapterScore(result) {
           <button class="primary-action" type="button" @click="openFullQuiz(activeChapter)">前往測驗（新頁面）</button>
           <small style="color:var(--text-muted)">或在此頁直接練習（保留右側按鈕）</small>
         </div>
-      </ChapterPanel>
+        </ChapterPanel>
+
+        <!-- 當選中個人總攬表時，在右側顯示此卡片 -->
+        <section v-else class="overview-card">
+          <div class="overview-card-inner">
+            <div class="overview-image-wrapper">
+              <img :src="personalityProfile.src" :alt="personalityType" />
+            </div>
+            <div class="overview-copy">
+              <div class="overview-header">
+                <h3>個人總攬表</h3>
+                <p class="overview-type">{{ personalityType }}</p>
+              </div>
+              <p class="overview-summary">{{ personalityProfile.description }}</p>
+              <p class="overview-summary subtle">{{ personalOverview }}</p>
+              <div class="overview-tags">
+                <span v-for="trait in personalityTraits" :key="trait.label">{{ trait.label }} {{ trait.value > 0 ? `(${trait.value})` : '' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="overview-results">
+            <h4>章節測驗成績</h4>
+            <ul>
+              <li v-for="item in chapterScoreList" :key="item.title">
+                <strong>{{ item.title }}</strong>
+                <span>{{ item.status }}</span>
+              </li>
+            </ul>
+          </div>
+        </section>
+      </div>
     </main>
     
     <FullPageQuiz
@@ -582,26 +692,40 @@ function saveChapterScore(result) {
 <style>
 /* 🌌 期末專題全局強制覆寫：深色沉浸式科技主題 */
 :root {
-  --bg-color: rgba(15, 23, 42, 0.85) !important;        /* 深藍 (帶 85% 透明度，讓底圖透出) */
-  --panel-bg: rgba(30, 41, 59, 0.85) !important;        /* 卡片背景 (帶 85% 透明度) */
+  --bg-color: #0F172A !important;        /* 深藍 */
+  --panel-bg: #1E293B !important;        /* 卡片背景 */
   --primary-color: #38BDF8 !important;   /* 科技藍 */
   --accent-color: #A855F7 !important;    /* 神秘紫 */
   --text-color: #F8FAFC !important;      /* 白字 */
   --text-muted: #94A3B8 !important;
 }
 
-body {
-  background-color: var(--bg-color) !important;
-}
-
 body, .site-shell, .login-home {
-  background-color: transparent !important;
+  background-color: var(--bg-color) !important;
   color: var(--text-color) !important;
 }
 
 html, body, #app { height: 100%; margin: 0 }
 
-.site-shell { width: min(1160px, calc(100% - 40px)); margin: 0 auto 32px; padding-top: 12px; padding-bottom: 12px }
+.site-shell {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 24px;
+  width: min(1160px, calc(100% - 40px));
+  margin: 0 auto 32px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.chapter-sidebar {
+  display: block;
+  width: 100%;
+}
+
+.chapter-main-content {
+  min-width: 0;
+  width: 100%;
+}
 
 .interactive-block, .chapter-panel, .theory-section, .chapter-quiz {
   background-color: var(--panel-bg) !important;
@@ -614,6 +738,128 @@ button.primary-action {
   background: linear-gradient(135deg, var(--primary-color), var(--accent-color)) !important;
   color: #fff !important;
   border: none !important;
+}
+
+.chapter-sidebar {
+  display: grid;
+  gap: 18px;
+}
+
+.overview-card {
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  border-radius: 18px;
+  padding: 28px;
+  background-color: #E0F2FE !important;
+  color: #0F172A !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.overview-card-inner {
+  display: flex;
+  gap: 22px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.overview-image-wrapper {
+  flex: 0 0 220px;
+}
+
+.overview-image-wrapper img {
+  width: 100%;
+  max-width: 260px;
+  height: auto;
+  display: block;
+  border-radius: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.18);
+}
+
+.overview-copy {
+  flex: 1;
+  min-width: 260px;
+}
+
+.overview-summary.subtle {
+  color: rgba(15, 23, 42, 0.72) !important;
+  margin-top: 8px;
+}
+
+.overview-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.overview-header h3 {
+  margin: 0;
+  color: #0F172A !important;
+  font-size: 1.25rem;
+}
+
+.overview-type {
+  margin: 0;
+  color: #0284C7 !important;
+  font-weight: 700;
+}
+
+.overview-summary {
+  color: #334155 !important;
+  line-height: 1.8;
+  margin: 0 0 14px;
+}
+
+.overview-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.overview-tags span {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(2, 132, 199, 0.15);
+  color: #0369A1 !important;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.overview-results h4 {
+  margin: 0 0 12px;
+  color: #0F172A !important;
+}
+
+.overview-results ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.overview-results li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(2, 132, 199, 0.1);
+  color: #0F172A !important;
+  font-size: 0.94rem;
+}
+
+.overview-results strong {
+  color: #0F172A !important;
+}
+
+.overview-results span {
+  color: #475569 !important;
 }
 
 .nav-item { color: var(--text-muted) !important; }
@@ -655,13 +901,9 @@ button.primary-action {
   color: rgba(248,250,252,0.9) !important;
 }
 
-/* 修正右側「深入解釋欄」：改回白字，並將背景調整為深藍色 */
-.selection-helper {
-  background-color: rgba(15, 23, 42, 0.6) !important;
-  border: 1px solid rgba(56, 189, 248, 0.2) !important;
-}
+/* 將右側深入解釋欄的文字改為深灰色，避免與淺色背景融合 */
 .selection-helper p {
-  color: rgba(248, 250, 252, 0.9) !important; 
+  color: #334155 !important;
 }
 
 /* top progress */

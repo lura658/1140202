@@ -695,11 +695,11 @@ button:disabled {
   border-radius: 8px;
   background: #fff;
   padding: 18px;
-  color: #102a43;
+  color: #4a4a4a;
 }
 
 .selection-helper p {
-  color: #102a43 !important;
+  color: #4a4a4a !important;
   line-height: 1.9;
   font-weight: 600;
 }

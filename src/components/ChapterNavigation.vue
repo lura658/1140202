@@ -8,6 +8,10 @@ defineProps({
     type: Number,
     required: true,
   },
+  showSummary: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 defineEmits(['select'])
@@ -25,6 +29,16 @@ defineEmits(['select'])
     >
       <span>{{ chapter.kicker }}</span>
       <strong>{{ chapter.title }}</strong>
+    </button>
+    <button
+      v-if="showSummary"
+      class="chapter-tab"
+      :class="{ active: activeIndex === -1 }"
+      type="button"
+      @click="$emit('select', -1)"
+    >
+      <span>學習分析報告</span>
+      <strong>個人總攬表</strong>
     </button>
   </aside>
 </template>
