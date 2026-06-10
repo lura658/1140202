@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：各章節 / 完整理論解釋 (Theory Explainer)
+  * 檔案功能：提供章節心理學理論的深入解說，並包含「深入解釋」與「換句話說」的文本選取互動功能。
+-->
+
 <script setup>
 import { computed, ref } from 'vue'
 

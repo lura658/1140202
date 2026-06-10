@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：佈局元件 / 全螢幕測驗框架 (Full Page Quiz)
+  * 檔案功能：作為章節測驗 (Chapter Quiz) 的全螢幕容器，提供標題列與返回導航功能。
+-->
+
 <script setup>
 import ChapterQuiz from './ChapterQuiz.vue'
 const props = defineProps({

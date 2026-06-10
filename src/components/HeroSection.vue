@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：首頁 / 頂部英雄區塊 (Hero Section)
+  * 檔案功能：作為首頁的第一視覺與互動區塊，包含翻轉 Logo 的心理學小知識展示，以及沉浸式體驗的學習目標點擊互動。
+-->
+
 <script setup>
 import { ref } from 'vue'
 import logoImg from '../logo.png'

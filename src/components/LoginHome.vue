@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：系統 / 登入首頁 (Login Home)
+  * 檔案功能：處理使用者的登入與註冊，呈現背景粒子動畫，並串接 Google Apps Script 進行帳號檢查與狀態初始化。
+-->
+
 <script setup>
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
 

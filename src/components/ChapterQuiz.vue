@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：各章節 / 隨機測驗區塊 (Chapter Quiz)
+  * 檔案功能：負責處理章節末的隨機抽取題目、使用者作答互動、計算成績，並將結果上傳至遠端儲存。
+-->
+
 <script setup>
 import { computed, ref, watch } from 'vue'
 

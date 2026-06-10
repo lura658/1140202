@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：記憶機制 / 記憶三階段 (Memory Pipeline)
+  * 檔案功能：互動式展示記憶的編碼、儲存與提取三個階段，強調記憶是動態流程而非靜態錄影。
+-->
+
 <script setup>
 const emit = defineEmits(['finished'])
 

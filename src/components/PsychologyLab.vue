@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：各章節 / 心理實驗室 (Psychology Lab)
+  * 檔案功能：章節核心的測驗區塊，根據不同章節載入對應的心理測驗題組，記錄使用者選擇並計算認知傾向分數。
+-->
+
 <script setup>
 import { computed, ref, watch } from 'vue'
 import ResultChart from './ResultChart.vue'

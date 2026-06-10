@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：結尾分析 / 專屬思考地圖報告 (Thinking Map Report)
+  * 檔案功能：作為整個互動體驗的總結，展示使用者的累積總分與認知傾向圖表，並提供後續探索的引導按鈕。
+-->
+
 <script setup>
 import { computed } from 'vue'
 import ResultChart from './ResultChart.vue'

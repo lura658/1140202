@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：記憶機制 / 記憶挑戰 (Memory Challenge)
+  * 檔案功能：透過短暫記憶物品的測驗，展示大腦在回憶時常會被相似物品或期待所影響的重建特性。
+-->
+
 <script setup>
 import { computed, ref } from 'vue'
 

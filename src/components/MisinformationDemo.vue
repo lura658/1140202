@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：記憶與錯誤資訊 / 錯誤訊息效應 (Misinformation Demo)
+  * 檔案功能：透過目擊車禍的提問情境，展示暗示性語句如何扭曲並影響人類的記憶重建。
+-->
+
 <script setup>
 import { ref } from 'vue'
 

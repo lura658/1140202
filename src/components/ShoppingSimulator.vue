@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：消費與決策 / 購物模擬器 (Shopping Simulator)
+  * 檔案功能：模擬電商購物情境，展示錨定效應、稀缺效應與社會認同如何潛移默化地影響購買選擇。
+-->
+
 <script setup>
 import { computed, ref } from 'vue'
 

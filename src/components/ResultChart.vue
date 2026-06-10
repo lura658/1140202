@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：共用元件 / 分析圖表 (Result Chart)
+  * 檔案功能：接收使用者的認知傾向分數 (Signals)，並將其視覺化為長條圖，顯示各項心理特質的偏好程度。
+-->
+
 <script setup>
 import { computed } from 'vue'
 

@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：社會影響與媒體 / 模擬社群推薦 (Social Media Demo)
+  * 檔案功能：模擬社群媒體的演算法推薦機制，展示 FOMO、同溫層效應如何影響使用者的注意力與行為。
+-->
+
 <script setup>
 import { computed, ref } from 'vue'
 

@@ -1,3 +1,8 @@
+<!--
+  * 對應章節：結尾分析 / 快問快答 (Quick Quiz)
+  * 檔案功能：隨機抽取偏誤理論與情境題目，提供使用者快速進行綜合性測驗，檢驗學習成果。
+-->
+
 <script setup>
 import { ref, computed } from 'vue'
 const props = defineProps({
